@@ -4,20 +4,19 @@ import requests
 
 st.title("📊 Scanner Gà Chiến v2 (Realtime)")
 
-# Danh sách mã
 tickers = ["VCB","CTG","TCB","MBB","STB","SSI","VND","HCM","VCI","HPG","HSG","NKG","GMD","VSC","MWG"]
 
 data = []
 
 for ticker in tickers:
     try:
-        url = f"https://price-api.vndirect.com.vn/prices?q=code:{ticker}"
+        url = f"https://finfo-api.vndirect.com.vn/v4/stock_prices?q=code:{ticker}&size=1"
         r = requests.get(url).json()
-        price = r["data"][0]["price"]
 
-        # Demo logic đơn giản (sẽ nâng cấp sau)
+        price = r["data"][0]["close"]
+
         score = 8 + (price % 3)
-        
+
         if score >= 10:
             status = "ƯU TIÊN MUA"
             action = "Mua"
@@ -41,7 +40,14 @@ for ticker in tickers:
         })
 
     except:
-        pass
+        data.append({
+            "Mã": ticker,
+            "Giá": "N/A",
+            "Điểm": 0,
+            "Trạng thái": "Lỗi dữ liệu",
+            "Hành động": "-",
+            "NAV": "-"
+        })
 
 df = pd.DataFrame(data)
 

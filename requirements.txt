@@ -1,1 +1,17 @@
-streamlit
+import streamlit as st
+
+st.set_page_config(page_title="Scanner Gà Chiến", layout="wide")
+
+st.title("🐔 Scanner Gà Chiến")
+
+tickers = [
+    "VCB","CTG","TCB","MBB","STB",
+    "SSI","VND","HCM","VCI",
+    "HPG","HSG","NKG",
+    "GMD","VSC","MWG"
+]
+
+st.write("Danh sách cổ phiếu theo dõi:")
+
+for ticker in tickers:
+    st.write(f"👉 {ticker}")

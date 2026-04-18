@@ -1,39 +1,31 @@
 import streamlit as st
 import pandas as pd
-import random
+import yfinance as yf
 
-st.title("📊 Scanner Gà Chiến v2")
+st.title("📊 Scanner Gà Chiến v3")
 
-tickers = ["VCB","CTG","TCB","MBB","STB","SSI","VND","HCM","VCI","HPG","HSG","NKG","GMD","VSC","MWG"]
+tickers = ["VCB.VN","MBB.VN","HPG.VN","SSI.VN","VND.VN"]
 
 data = []
 
 for ticker in tickers:
-    price = random.randint(10,100)
+    try:
+        df = yf.download(ticker, period="1mo")
 
-    score = random.randint(7,11)
+        close = df["Close"]
 
-    if score >= 10:
-        status = "ƯU TIÊN MUA"
-        action = "Mua"
-        nav = "30%"
-    elif score >= 8:
-        status = "THEO DÕI"
-        action = "Chờ"
-        nav = "0%"
-    else:
-        status = "LOẠI"
-        action = "Bỏ"
-        nav = "0%"
+        ema9 = close.ewm(span=9).mean()
+        rsi = close.pct_change().rolling(14).mean() * 100
 
-    data.append({
-        "Mã": ticker,
-        "Giá": price,
-        "Điểm": score,
-        "Trạng thái": status,
-        "Hành động": action,
-        "NAV": nav
-    })
+        data.append({
+            "Mã": ticker,
+            "Giá": round(close.iloc[-1],2),
+            "EMA9": round(ema9.iloc[-1],2),
+            "RSI": round(rsi.iloc[-1],2)
+        })
+
+    except:
+        pass
 
 df = pd.DataFrame(data)
 

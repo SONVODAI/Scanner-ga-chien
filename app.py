@@ -68,7 +68,11 @@ results = []
 
 for symbol in WATCHLIST:
     try:
-        df = stock_historical_data(symbol, "2024-01-01", "2025-01-01", "1D")
+       from datetime import datetime
+
+today = datetime.now().strftime("%Y-%m-%d")
+
+df = stock_historical_data(symbol, "2023-01-01", today, "1D")
         df = calc_indicators(df)
 
         row = df.iloc[-1]

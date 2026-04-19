@@ -45,7 +45,37 @@ def calc_indicators(df):
     return df
 
 # ================= CLASSIFY =================
+def classify(row):
+    rsi = row["RSI"]
+    ema9 = row["EMA9"]
+    price = row["close"]
+    obv = row["OBV"]
+    obv_ema = row["OBV_EMA"]
 
+    dist = (price - ema9)/ema9*100
+
+    # 🚀 GÀ ĐANG CHẠY (ưu tiên cao nhất)
+    if rsi >= 70 and price > ema9 and obv > obv_ema:
+        return "STRONG_TREND"
+
+    # 🟢 Pull đẹp
+    elif 60 <= rsi < 70 and abs(dist) < 4:
+        return "BUY_PULL"
+
+    # 🌱 Early
+    elif 45 < rsi < 60:
+        return "BUY_EARLY"
+
+    # ⏳ Quá nóng
+    elif rsi >= 75:
+        return "WAIT_PULL"
+
+    # 🐢 Tích lũy
+    elif 40 <= rsi <= 50:
+        return "ACCUMULATION"
+
+    else:
+        return "AVOID"
 # ================= MAIN =================
 results = []
        

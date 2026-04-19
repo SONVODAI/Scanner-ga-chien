@@ -84,7 +84,7 @@ df = stock_historical_data(symbol, "2023-01-01", today, "1D")
             "action": classify(row)
         })
         except Exception as e:
-    st.write(f"Lỗi {symbol}: {e}")
+               st.write(f"Lỗi {symbol}: {e}")
 
 df = pd.DataFrame(results)
 

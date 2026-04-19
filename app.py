@@ -119,6 +119,10 @@ with col2:
 with col3:
     st.subheader("WAIT_PULL")
     st.dataframe(df[df.action=="WAIT_PULL"])
+with col4:
+    st.subheader("ACCUMULATION")
+    st.dataframe(df[df.action=="ACCUMULATION"])
+
 with col5:
     st.subheader("🔥 STRONG TREND")
     st.dataframe(df[df.action=="STRONG_TREND"])

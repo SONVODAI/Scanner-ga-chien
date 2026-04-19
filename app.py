@@ -45,23 +45,6 @@ def calc_indicators(df):
     return df
 
 # ================= CLASSIFY =================
-def classify(row):
-    rsi = row['RSI']
-    ema9 = row['EMA9']
-    price = row['close']
-
-    dist = (price - ema9)/ema9*100
-
-    if rsi >= 60 and rsi <= 75 and abs(dist) < 4:
-        return "BUY_PULL"
-    elif rsi <= 55 and rsi > 40:
-        return "BUY_EARLY"
-    elif rsi > 75:
-        return "WAIT_PULL"
-    elif rsi >=45 and rsi <=58:
-        return "ACCUMULATION"
-    else:
-        return "AVOID"
 
 # ================= MAIN =================
 results = []
@@ -93,7 +76,7 @@ df = pd.DataFrame(results)
 
 st.title("🔥 SCANNER GÀ CHIẾN V15.3 PRO")
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     st.subheader("BUY_PULL")
@@ -106,7 +89,6 @@ with col2:
 with col3:
     st.subheader("WAIT_PULL")
     st.dataframe(df[df.action=="WAIT_PULL"])
-
-with col4:
-    st.subheader("ACCUMULATION")
-    st.dataframe(df[df.action=="ACCUMULATION"])
+with col5:
+    st.subheader("🔥 STRONG TREND")
+    st.dataframe(df[df.action=="STRONG_TREND"])

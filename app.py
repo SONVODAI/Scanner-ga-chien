@@ -65,24 +65,29 @@ def classify(row):
 
 # ================= MAIN =================
 results = []
-
+       
 for symbol in WATCHLIST:
     try:
-         today = datetime.now().strftime("%Y-%m-%d")
+        today = datetime.now().strftime("%Y-%m-%d")
 
-         df = stock_historical_data(symbol, "2023-01-01", today, "1D")
-         df = calc_indicators(df)
-         if df is None or len(df) == 0:
-         raise Exception("No data")
-         row = df.iloc[-1]
-         results.append({
+        df = stock_historical_data(symbol, "2023-01-01", today, "1D")
+        df = calc_indicators(df)
+
+        if df is None or len(df) == 0:
+            raise Exception("No data")
+
+        row = df.iloc[-1]
+
+        results.append({
             "symbol": symbol,
             "price": row['close'],
             "RSI": row['RSI'],
             "action": classify(row)
         })
-        except Exception as e:
-               st.write(f"Lỗi {symbol}: {e}")
+
+    except Exception as e:
+        st.write(f"Lỗi {symbol}: {e}")
+               
 
 df = pd.DataFrame(results)
 

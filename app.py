@@ -68,15 +68,15 @@ results = []
 
 for symbol in WATCHLIST:
     try:
-       from datetime import datetime
+       
 
 today = datetime.now().strftime("%Y-%m-%d")
 
 df = stock_historical_data(symbol, "2023-01-01", today, "1D")
         df = calc_indicators(df)
-
-        row = df.iloc[-1]
-
+if df is None or len(df) == 0:
+    raise Exception("No data")
+row = df.iloc[-1]
         results.append({
             "symbol": symbol,
             "price": row['close'],

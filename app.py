@@ -1,128 +1,169 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from datetime import datetime
-from vnstock import *
+import yfinance as yf
 
-st.set_page_config(layout="wide")
+st.title("🔥 STOCK SCANNER V18.4 – E/R/O + ACC")
 
-# ================= WATCHLIST =================
-WATCHLIST = [
-"VCB","BID","CTG","TCB","MBB","VPB","STB","HDB","ACB","SHB","TPB","LPB","EIB","ABB","MSB","KLB","EVF","SSB","VIB","BVB","OCB",
-"SSI","VIX","SHS","MBS","TCX","VCK","VPX","HCM","VCI","VND","CTS","FTS","BSI","BVS","ORS","VDS","AGR",
-"VHM","VIC","NLG","KDH","CEO","CII","DXG","TCH","HHS","DPG","HDC","NVL","NTL","NHA","HUT","DIG","PDR","DXS","VRE","VPL",
-"VGC","IDC","KBC","SZC","BCM","DTD","LHG","IJC","GVR","PHR","DPR","DRI","SIP","TRC","DRC","CSM",
-"MWG","DGW","FRT","PET","PNJ","MSN","MCH","PAN","FMC","DBC","HAG","VNM","MML","SAB","SBT","TLG","HPA","BAF",
-"REE","GEE","GEX","PC1","NT2","GEL","HDG","GEG","POW",
-"DPM","DCM","LAS","DDV","DGC","CSV","BFC","MSR","BMP","NTP",
-"BSR","PVS","PVD","PVB","PVC","PVT","OIL","PLX","GAS",
-"HAH","GMD","VSC","VOS","VTO","HVN","VJC","ACV",
-"VTP","CTR","VGI","FPT","FOX","CMG","MFS","ELC",
-"MSH","TNG","TCM","GIL","VGT","HTG","VHC","ANV","VCS","PTB",
-"CTD","HHV","FCN","LCG","CTI","KSB","C4G","VCG","DHA","PLC","HT1",
-"HPG","HSG","NKG","VGS","TLH","TVN",
-"DVN","DCL","DHG","IMP","DBD","DHT",
-"BVH","MIG","BMI"
-]
+# =========================
+# LOAD DATA
+# =========================
+def load_data(ticker):
+    df = yf.download(ticker, period="6mo", interval="1d")
+    df.dropna(inplace=True)
+    return df
 
-# ================= INDICATORS =================
-def calc_indicators(df):
-    df['EMA9'] = df['close'].ewm(span=9).mean()
-    df['EMA20'] = df['close'].ewm(span=20).mean()
+# =========================
+# INDICATORS
+# =========================
+def add_indicators(df):
+    # EMA
+    df['ema9'] = df['Close'].ewm(span=9).mean()
+    df['ma20'] = df['Close'].rolling(20).mean()
 
-    delta = df['close'].diff()
+    # RSI
+    delta = df['Close'].diff()
     gain = (delta.where(delta > 0, 0)).rolling(14).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
     rs = gain / loss
-    df['RSI'] = 100 - (100 / (1 + rs))
+    df['rsi'] = 100 - (100 / (1 + rs))
 
-    df['MACD'] = df['close'].ewm(span=12).mean() - df['close'].ewm(span=26).mean()
-    df['MACD_SIGNAL'] = df['MACD'].ewm(span=9).mean()
+    # OBV
+    df['obv'] = (np.sign(df['Close'].diff()) * df['Volume']).fillna(0).cumsum()
+    df['obv_ema9'] = df['obv'].ewm(span=9).mean()
 
-    df['OBV'] = (np.sign(df['close'].diff()) * df['volume']).fillna(0).cumsum()
-    df['OBV_EMA'] = df['OBV'].ewm(span=9).mean()
+    # BB
+    df['bb_mid'] = df['Close'].rolling(20).mean()
+    df['bb_std'] = df['Close'].rolling(20).std()
+    df['bb_upper'] = df['bb_mid'] + 2 * df['bb_std']
+    df['bb_lower'] = df['bb_mid'] - 2 * df['bb_std']
 
     return df
 
-# ================= CLASSIFY =================
-def classify(row):
-    rsi = row["RSI"]
-    ema9 = row["EMA9"]
-    price = row["close"]
-    obv = row["OBV"]
-    obv_ema = row["OBV_EMA"]
+# =========================
+# E – ENERGY
+# =========================
+def score_E(df):
+    last = df.iloc[-1]
 
-    dist = (price - ema9)/ema9*100
+    cond_price = last['Close'] > last['ema9'] > last['ma20']
+    cond_rsi = last['rsi'] > 55
+    cond_obv = last['obv'] > last['obv_ema9']
 
-    # 🚀 GÀ ĐANG CHẠY (ưu tiên cao nhất)
-    if rsi >= 70 and price > ema9 and obv > obv_ema:
-        return "STRONG_TREND"
+    score = sum([cond_price, cond_rsi, cond_obv])
 
-    # 🟢 Pull đẹp
-    elif 60 <= rsi < 70 and abs(dist) < 4:
-        return "BUY_PULL"
-
-    # 🌱 Early
-    elif 45 < rsi < 60:
-        return "BUY_EARLY"
-
-    # ⏳ Quá nóng
-    elif rsi >= 75:
-        return "WAIT_PULL"
-
-    # 🐢 Tích lũy
-    elif 40 <= rsi <= 50:
-        return "ACCUMULATION"
-
+    if score >= 3:
+        return 2
+    elif score == 2:
+        return 1
     else:
-        return "AVOID"
-# ================= MAIN =================
+        return 0
+
+# =========================
+# R – RISK (distance EMA9)
+# =========================
+def score_R(df):
+    last = df.iloc[-1]
+
+    dist = abs(last['Close'] - last['ema9']) / last['ema9']
+
+    if dist < 0.03:
+        return 2
+    elif dist < 0.07:
+        return 1
+    else:
+        return 0
+
+# =========================
+# O – OPPORTUNITY
+# =========================
+def score_O(df):
+    last = df.iloc[-1]
+    prev = df.iloc[-2]
+
+    cond_rsi_up = last['rsi'] > prev['rsi']
+    cond_obv_up = last['obv'] > prev['obv']
+    cond_price_up = last['Close'] > prev['Close']
+
+    score = sum([cond_rsi_up, cond_obv_up, cond_price_up])
+
+    if score >= 3:
+        return 2
+    elif score == 2:
+        return 1
+    else:
+        return 0
+
+# =========================
+# ACC – TÍCH LŨY ĐẸP
+# =========================
+def score_ACC(df):
+    data = df.tail(60)
+
+    if len(data) < 50:
+        return 0
+
+    # 1. sideway
+    price_range = (data['Close'].max() - data['Close'].min()) / data['Close'].mean()
+    cond_price = price_range < 0.12
+
+    # 2. volume giảm
+    vol_slope = np.polyfit(range(len(data)), data['Volume'], 1)[0]
+    cond_vol = vol_slope < 0
+
+    # 3. RSI ổn định
+    rsi_mean = data['rsi'].mean()
+    cond_rsi = 45 < rsi_mean < 60
+
+    # 4. OBV giữ nền
+    obv_slope = np.polyfit(range(len(data)), data['obv'], 1)[0]
+    cond_obv = obv_slope >= 0
+
+    # 5. BB bó hẹp
+    bb_width = (data['bb_upper'] - data['bb_lower']) / data['Close']
+    cond_bb = bb_width.mean() < 0.18
+
+    score = sum([cond_price, cond_vol, cond_rsi, cond_obv, cond_bb])
+    return score
+
+# =========================
+# WATCHLIST
+# =========================
+tickers = ["MBB.VN","TCB.VN","SSI.VN","VND.VN","MWG.VN","FPT.VN"]
+
 results = []
-       
-for symbol in WATCHLIST:
+
+for ticker in tickers:
     try:
-        today = datetime.now().strftime("%Y-%m-%d")
+        df = load_data(ticker)
+        df = add_indicators(df)
 
-        df = stock_historical_data(symbol, "2023-01-01", today, "1D")
-        df = calc_indicators(df)
+        E = score_E(df)
+        R = score_R(df)
+        O = score_O(df)
+        ACC = score_ACC(df)
 
-        if df is None or len(df) == 0:
-            raise Exception("No data")
+        # CHỈ LẤY TÍCH LŨY ĐẸP
+        if ACC >= 4:
+            results.append({
+                "Ticker": ticker,
+                "E": E,
+                "R": R,
+                "O": O,
+                "ACC": ACC,
+                "TOTAL": E + R + O
+            })
 
-        row = df.iloc[-1]
+    except:
+        continue
 
-        results.append({
-            "symbol": symbol,
-            "price": row['close'],
-            "RSI": row['RSI'],
-            "action": classify(row)
-        })
+# =========================
+# OUTPUT
+# =========================
+df_out = pd.DataFrame(results)
 
-    except Exception as e:
-        st.write(f"Lỗi {symbol}: {e}")
-               
-
-df = pd.DataFrame(results)
-
-st.title("🔥 SCANNER GÀ CHIẾN V15.3 PRO")
-
-col1, col2, col3, col4, col5 = st.columns(5)
-
-with col1:
-    st.subheader("BUY_PULL")
-    st.dataframe(df[df.action=="BUY_PULL"])
-
-with col2:
-    st.subheader("BUY_EARLY")
-    st.dataframe(df[df.action=="BUY_EARLY"])
-
-with col3:
-    st.subheader("WAIT_PULL")
-    st.dataframe(df[df.action=="WAIT_PULL"])
-with col4:
-    st.subheader("ACCUMULATION")
-    st.dataframe(df[df.action=="ACCUMULATION"])
-
-with col5:
-    st.subheader("🔥 STRONG TREND")
-    st.dataframe(df[df.action=="STRONG_TREND"])
+if not df_out.empty:
+    df_out = df_out.sort_values(by="TOTAL", ascending=False)
+    st.dataframe(df_out)
+else:
+    st.write("❌ Không có cổ phiếu tích lũy đẹp")

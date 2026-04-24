@@ -15,7 +15,7 @@ WATCHLIST = {
     "Điện & Hóa chất": ["BFC","DCM","DPM","CSV","DDV","LAS","BMP","NTP","AAA","PAC","MSR","REE","GEE","GEX","PC1","HDG","GEG","NT2","TV2","DGC"],
     "Đầu tư công & vật liệu": ["C4G","FCN","CII","KSB","DHA","CTI","HBC","HPG","HSG","NKG","VGS","CTD","HHV","VCG"],
     "Bán lẻ & chăn nuôi": ["MWG","FRT","DGW","PET","HAX","MSN","DBC","HAG","BAF","MCH","PAN","VNM","MML"],
-    "Ngân hàng & tài chính": ["VCB","BID","CTG","TCB","VPB","MBB","ACB","SHB","SSB","STB","HDB","TPB","VIB","LPB","OCB","MSB","NAB","EIB","VND","SSI","HCM","SHS","VIX","BSI","FTS","TVS","APS","AGR","VCI"],
+    "Ngân hàng & tài chính": ["VCB","BID","CTG","TCB","VPB","MBB","ACB","SHB","SSB","STB","HDB","TPB","VIB","LPB","OCB","MSB","NAB","EIB","VND","MBS","TCX","VCK","VPX","SSI","HCM","SHS","VIX","BSI","FTS","TVS","APS","AGR","VCI"],
     "Công nghệ & logistic": ["FPT","VGI","CTR","VTP","CMG","ELC","FOX"],
     "Cổ phiếu lẻ": ["HVN","VJC","IMP","BVH","SBT","LSS","PNJ","TLG","DHT","TNH","NVL","VHM","VIC","YEG"]
     "Bất động sản công nghiệp": ["VGC","SZC","IDC","KBC","LHG","IJC","DTD","BCM"],

@@ -18,6 +18,8 @@ WATCHLIST = {
     "Ngân hàng & tài chính": ["VCB","BID","CTG","TCB","VPB","MBB","ACB","SHB","SSB","STB","HDB","TPB","VIB","LPB","OCB","MSB","NAB","EIB","VND","SSI","HCM","SHS","VIX","BSI","FTS","TVS","APS","AGR","VCI"],
     "Công nghệ & logistic": ["FPT","VGI","CTR","VTP","CMG","ELC","FOX"],
     "Cổ phiếu lẻ": ["HVN","VJC","IMP","BVH","SBT","LSS","PNJ","TLG","DHT","TNH","NVL","VHM","VIC","YEG"]
+    "Bất động sản công nghiệp": ["VGC","SZC","IDC","KBC","LHG","IJC","DTD","BCM"],
+    "Cao su":["GVR","SIP","PHR","DRI","DPR","CSM","DRC"],
 }
 
 ALL_TICKERS = []
